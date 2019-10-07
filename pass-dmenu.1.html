@@ -1,0 +1,321 @@
+<html><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>pass-dmenu(1)</title>
+</head><body>
+<pre class="man">pass-dmenu(1)                                                                             pass-dmenu(1)
+
+<strong>SYNOPSIS</strong>
+       <strong>pass-dmenu</strong> {clip, type} [<em>dmenu</em> <em>args</em>]...
+
+<strong>DESCRIPTION</strong>
+       <strong>pass-dmenu</strong> is a <strong>dmenu</strong>-based UI for <strong>Password</strong> <strong>Store</strong> that uses predictive ordering and integrations
+       with <strong>xdotool</strong> and <strong>pass-otp</strong> to reduce considerably the number of  keystrokes  required  to  use  a
+       password.
+
+       It is especially effective where sets of related passwords tend to be addressed in sequence.
+
+   <strong>Actions</strong>
+       The first argument to <strong>pass-dmenu</strong> must be the action to be performed with the selected password:
+
+       <strong>clip</strong>   Copy the selected password to the clipboard (using <strong>xclip</strong>).
+
+       <strong>type</strong>   “Type” the selected password (using <strong>xdotool</strong>).
+
+       (<em>pass-dmenu</em> <em>clip</em> clears the clipboard after one paste or $PASSWORD_STORE_CLIP_TIME seconds.)
+
+   <strong>Additional</strong> <strong>arguments</strong>
+       Any additional arguments to <strong>pass-dmenu</strong> are passed directly to <strong>dmenu</strong>.
+
+   <strong>One-time</strong> <strong>password</strong> <strong>support</strong>
+       If  a  password value begins with otpauth://, <strong>pass-otp</strong> will be used to generate a one-time pass-
+       word, which will then be <em>clipped</em> or <em>typed</em> as usual.
+
+<strong>PREDICTIVE</strong> <strong>ORDERING</strong>
+       <strong>dmenu</strong> provides two mechanisms by which to select an element from a list of  options:  filtration
+       (based on substring match) and sequential navigation.  Because <strong>dmenu</strong>'s sequential navigation al-
+       ways starts with the first filtered element, elements near the head of the list tend to  require
+       fewer keystrokes to select than elements elsewhere in the list.  Thus, if we promote to the head
+       of the list the elements that are likeliest to be selected in a given invocation, we can  reduce
+       the number of keystrokes required to select them.
+
+       <strong>pass-dmenu</strong>  begins with a list of password names in lexicographic order and performs this promo-
+       tion using:
+
+       • a set of manually defined, regex-based rules and
+
+       • the password name selected in the most recent [prior] <strong>pass-dmenu</strong> invocation.
+
+   <strong>Rulesets</strong>
+       Rules for a password store are defined in the file .pass-dmenu.rules at the root of the password
+       store.   This  ruleset is a JSON-encoded list of rules, where each rule is a single-element dic-
+       tionary mapping a regular expression to a list of regular expression templates.   (Specifically,
+       these are <strong>Python</strong> <strong>regular</strong> <strong>expressions</strong> and <strong>Python</strong> <strong>format</strong> <strong>string</strong> <strong>templates</strong>.)
+
+       For convenience, single-element template lists can be abbreviated by their element.
+
+       In short, the schema is:
+
+              RuleSet: List[
+                  SingleElementDict[
+                      MatcherRegex,
+                      Union[PickerRegexTemplate, List[PickerRegexTemplate]]
+                  ]
+              ]
+
+       Roughly,  each  rule maps from “what was selected most recently” to “what is likeliest to be se-
+       lected next.”
+
+   <strong>Evaluation</strong>
+       Each <em>MatcherRegex</em> is evaluated against  the  most-recently-used  password  name  (or  the  empty
+       string,  if  there is no most-recently-used password).  When there's a hit, the resulting <em>Match-</em>
+       <em>Group</em> is interpolated into each <em>PickerRegexTemplate</em>, resulting in a <em>PickerRegex</em>.  (Regex control
+       characters appearing in the <em>MatchGroup</em> are escaped as necessary.)
+
+              Match: fn[MostRecentlyUsedPasswordName, MatcherRegex] -&gt; Optional[MatchGroup]
+              Interpolate: fn[MatchGroup, PickerRegexTemplate] -&gt; PickerRegex
+
+       This  process  is applied to each rule in the ruleset, ultimately resulting in a list of <em>Picker-</em>
+       <em>Regex</em> objects, ordered as they appear in the original JSON document:
+
+              Evaluate: fn[RuleSet, MostRecentlyUsedPasswordName] -&gt; List[PickerRegex]
+
+   <strong>Promotion</strong>
+       Once the evaluation process is complete, <strong>pass-dmenu</strong> initializes two lists:
+
+       • a <em>residual</em> list is initialized with all the names in the password store, sorted  lexicographi-
+         cally, and
+
+       • a <em>promoted</em> list is initialized with no elements.
+
+       Starting  with  the  first  <em>PickerRegex</em>, <strong>pass-dmenu</strong> considers each element in the residual list,
+       from head to tail.  Each time it encounters an element that  matches  the  current  <em>PickerRegex</em>,
+       that  element  is moved from its position in the residual list to the tail of the promoted list.
+       This process repeats for each <em>PickerRegex</em>.  Once it is complete, any elements that remain in the
+       residual list are moved in order to the promoted list, and the promoted list is displayed to the
+       user.
+
+              Promote: fn[List[PickerRegex], List[PasswordNames]] -&gt; List[PasswordNames]
+
+   <strong>Example</strong>
+       Consider the following ruleset:
+
+              [
+                  {
+                      "^(?P&lt;base&gt;.*)/(user|login)$": "^{base}/pass$"
+                  },
+                  {
+                      "^(.*)/pass$": [
+                          "^{1}/(otp|OTP)$",
+                          "^{1}/(pin|PIN)$",
+                      ]
+                  },
+                  {
+                      "": [
+                          "/user$",
+                          "/login$",
+                      ]
+                  }
+              }
+
+       ...and the following lexicographically-ordered list of password names:
+
+              aaaaaaaaaaaaaaaaaa
+              graceful.host/pass
+              graceful.host/user
+              grapefruit.home/email
+              grapefruit.home/pass
+              grapefruit.home/pin
+              grapefruit.home/user
+              horse.lan/login
+              horse.lan/otp
+              horse.lan/user
+              pizza.corp/user
+
+   <strong>First</strong> <strong>invocation</strong>
+       If <strong>pass-dmenu</strong> is invoked without a most-recently-used password name (i.e. upon first  invocation
+       or after cancelling an invocation), the ruleset will evaluate to these <em>PickerRegex</em> expressions:
+
+              /user$
+              /login$
+
+       These expressions first promote everything ending in “/user”, and then promote everything ending
+       in “/login”, resulting in the following final order:
+
+              graceful.host/user
+              grapefruit.home/user
+              horse.lan/user
+              pizza.corp/user
+              horse.lan/login
+              aaaaaaaaaaaaaaaaaa
+              graceful.host/pass
+              grapefruit.home/email
+              grapefruit.home/pass
+              grapefruit.home/pin
+              horse.lan/otp
+
+       Where the tersest way to select grapefruit.home/user would have been pe&lt;Right&gt;&lt;Right&gt;&lt;Right&gt;&lt;En-
+       ter&gt; in the original order, it is now p&lt;Enter&gt;.
+
+   <strong>Second</strong> <strong>invocation</strong>
+       If the user selects grapefruit.home/user and invokes <strong>pass-dmenu</strong> again, the ruleset will evaluate
+       to these <em>PickerRegex</em> expressions:
+
+              ^grapefruit\\.home/pass$
+              /user$
+              /login$
+
+       This results in the following final order:
+
+              grapefruit.home/pass
+              graceful.host/user
+              grapefruit.home/user
+              horse.lan/user
+              pizza.corp/user
+              horse.lan/login
+              aaaaaaaaaaaaaaaaaa
+              graceful.host/pass
+              grapefruit.home/email
+              grapefruit.home/pin
+              horse.lan/otp
+
+       Where the tersest way to select grapefruit.home/pass would have been pe&lt;Right&gt;&lt;Enter&gt;, it is now
+       &lt;Enter&gt;.
+
+   <strong>Third</strong> <strong>invocation</strong>
+       If the user selects grapefruit.home/pass and invokes <strong>pass-dmenu</strong> again, the ruleset will evaluate
+       to these <em>PickerRegex</em> expressions:
+
+              ^grapefruit\\.home/(otp|OTP)$
+              ^grapefruit\\.home/(pin|PIN)$
+              /user$
+              /login$
+
+       This results in the following final order:
+
+              grapefruit.home/pin
+              graceful.host/user
+              grapefruit.home/user
+              horse.lan/user
+              pizza.corp/user
+              horse.lan/login
+              aaaaaaaaaaaaaaaaaa
+              graceful.host/pass
+              grapefruit.home/email
+              grapefruit.home/pass
+              horse.lan/otp
+
+       Where the tersest way to select grapefruit.home/pass would have been pe&lt;Right&gt;&lt;Right&gt;&lt;Enter&gt;, it
+       is now &lt;Enter&gt;.
+
+   <strong>Fourth</strong> <strong>invocation</strong>
+       If the user selects grapefruit.home/pass and invokes <strong>pass-dmenu</strong> again, the ruleset will evaluate
+       to these <em>PickerRegex</em> expressions:
+
+              /user$
+              /login$
+
+       And we're now back to the same order that we saw on the initial invocation.
+
+<strong>ENVIRONMENT</strong>
+       <strong>PASSWORD_STORE_DIR</strong>
+              The path of the password store directory.  Defaults to ~/.password-store.
+
+       <strong>PASSWORD_STORE_UMASK</strong>
+              The umask used by <strong>pass-dmenu</strong> when updating .pass-dmenu.rules.  Defaults to 077.
+
+       <strong>PASSWORD_STORE_DMENU</strong>
+              The path to <strong>dmenu</strong> (or equivalent).  Defaults to dmenu.
+
+       <strong>PASSWORD_STORE_X_SELECTION</strong>
+              The X selection to use for the clip action.  Defaults to clipboard.   (See  xclip(1)  for
+              more information.)
+
+       <strong>PASSWORD_STORE_CLIP_TIME</strong>
+              The  number  of seconds the clip action should allot for the password to be pasted by the
+              user before it gives up and clears the clipboard.  Defaults to 45.
+
+<strong>FILES</strong>
+       <strong>$PASSWORD_STORE_DIR/.pass-dmenu.rules</strong>
+              The JSON ruleset for $PASSWORD_STORE_DIR.
+
+       <strong>$PASSWORD_STORE_DIR/.pass-dmenu.cache</strong>
+              The password most recently selected by <strong>pass-dmenu</strong> for  $PASSWORD_STORE_DIR.   (This  file
+              will  be  zero-length  if the most recent <strong>pass-dmenu</strong> invocation was cancelled without se-
+              lecting a password.)
+
+<strong>SECURITY</strong> <strong>CONSIDERATIONS</strong>
+       This section describes the security delta between using <strong>pass-dmenu</strong> and using <strong>Password</strong>  <strong>Store</strong>  on
+       its own; it is not meant to be a comprehensive treatment.
+
+   <strong>Cache</strong> <strong>file</strong>
+       Each   time   a   password   is   selected   (or   a  password  selection  is  aborted),  $PASS-
+       WORD_STORE_DIR/.pass-dmenu.cache will be updated atomically using rename(2) with the name of the
+       most-recently-used   password   (or  emptiness).   An  adversary  with  read  access  to  $PASS-
+       WORD_STORE_DIR could learn when you last  used  <strong>pass-dmenu</strong>  by  observing  the  change  time  of
+       .pass-dmenu.cache,  and  they  could learn which password you chose (or that you didn't choose a
+       password) during that invocation by observing the contents of said file.  All of  this  informa-
+       tion  (and  more)  could  also  be  learned  by  observing  the  access times of files in $PASS-
+       WORD_STORE_DIR.
+
+       By default, <strong>Password</strong> <strong>Store</strong> and <strong>pass-dmenu</strong> use a umask of 077, which prevents  users  other  than
+       the  owner  of  $PASSWORD_STORE_DIR  from  observing both .pass-dmenu.cache and filesystem time-
+       stamps.
+
+       For additional confidentiality, <strong>pass-dmenu</strong> may be used with disk or file encryption schemes.
+
+   <strong>Trusted</strong> <strong>base</strong>
+       <strong>pass-dmenu</strong> is written in Python 3, using only built-ins and the standard  library.   Thus,  when
+       you  trust  <strong>pass-dmenu</strong>  with your cleartext passwords, you extend the same trust to the Python 3
+       interpreter, to portions of the Python 3 standard library, and to their dependencies.
+
+   <strong>Swap</strong>
+       In Python 3, as with most other languages in which memory management  is  implicit,  there's  no
+       great way to keep process state from being swapped to disk during periods when memory is scarce.
+       As a result, cleartext passwords being handled by <strong>pass-dmenu</strong> could potentially wind up in a swap
+       partition.   <em>This</em>  <em>issue</em> <em>is</em> <em>not</em> <em>unique</em> <em>to</em> <em>this</em> <em>software</em>—it also affects <strong>Password</strong> <strong>Store</strong> (which is
+       written in bash), <strong>xclip</strong> and <strong>xdotool</strong> (which are written in C), and many applications that consume
+       passwords (e.g. web browsers).
+
+       The issue may be mitigated by disabling swap or by using an encrypted swap partition.
+
+   <strong>Clipboard</strong>
+       <em>pass-dmenu</em>  <em>clip</em>  allows  a  password  to  be  pasted  no more than once before the clipboard is
+       cleared.  This is in contrast to <strong>Password</strong> <strong>Store</strong>, which does not clear the clipboard until $PASS-
+       WORD_STORE_CLIP_TIME seconds have elapsed.
+
+       <strong>Password</strong> <strong>Store</strong> attempts to clear password history from klipper, a clipboard manager.  <em>pass-dmenu</em>
+       <em>clip</em> does not attempt to integrate with any clipboard managers.
+
+       <em>pass-dmenu</em> <em>type</em> does not interact with the clipboard.
+
+<strong>SEE</strong> <strong>ALSO</strong>
+       pass(1), pass-otp(1), dmenu(1), xdotool(1), xclip(1)
+
+<strong>REFERENCES</strong>
+       <strong>dmenu</strong>  https://tools.suckless.org/dmenu/
+
+       <strong>Password</strong> <strong>Store</strong>
+              https://www.passwordstore.org/
+
+       <strong>xdotool</strong>
+              https://www.semicomplete.com/projects/xdotool/
+
+       <strong>pass-otp</strong>
+              https://github.com/tadfisher/pass-otp
+
+       <strong>xclip</strong>  https://github.com/astrand/xclip
+
+       <strong>Python</strong> <strong>regular</strong> <strong>expressions</strong>
+              https://docs.python.org/3/library/re.html#regular-expression-syntax
+
+       <strong>Python</strong> <strong>format</strong> <strong>string</strong> <strong>templates</strong>
+              https://docs.python.org/3/library/string.html#formatstrings
+
+<strong>COPYRIGHT</strong>
+       Copyright 2019 Branen Salmon.  License GPLv3+: GNU GPL version 3 or  later  (https://gnu.org/li-
+       censes/gpl.html).   This is free software: you are free to change and redistribute it.  There is
+       NO WARRANTY, to the extent permitted by law.
+
+                                              21 Sep 2019                                 pass-dmenu(1)
+</pre>
+</body></html>
