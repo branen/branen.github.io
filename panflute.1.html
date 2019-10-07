@@ -1,0 +1,61 @@
+<html><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>panflute(1)</title>
+</head><body>
+<pre class="man">panflute(1)                                                                                 panflute(1)
+
+<strong>NAME</strong>
+       panflute - metadata-driven runner for Panflute filters
+
+<strong>SYNOPSIS</strong>
+       <strong>panflute</strong> [<em>writer</em>]
+
+<strong>DESCRIPTION</strong>
+       <strong>panflute</strong>  runs filters written for Panflute, a Pythonic API for transforming documents with Pan-
+       doc.  It takes its options from the document metadata.
+
+   <strong>Arguments</strong>
+       <em>writer</em> Pandoc writer option (passed to filters).
+
+   <strong>Document</strong> <strong>metadata</strong>
+       <strong>panflute-path</strong>
+              A list of directories to search for filters.
+
+       <strong>panflute-filters</strong>
+              A list of filters to run.  They may be specified as relative  or  absolute  paths  or  as
+              Python module names.
+
+       In either case, if a string is specified instead of a list, it will be treated as the single el-
+       ement of an implicit list.
+
+       See the Panflute library documentation for details.
+
+<strong>SEARCH</strong> <strong>PATH</strong>
+       The search for filters proceeds as follows:
+
+       • The current directory is searched.
+
+       • Each element of panflute-path is tilde– and environment-variable–expanded and searched in  or-
+         der.
+
+         In  addition to directory paths, the <strong>panflute-path</strong> list may also contain the values <strong>--data-dir</strong>
+         or <strong>--no-sys-path</strong>; these change later search behavior.
+
+       • If <strong>--data-dir</strong> was specified, the “<em>pandoc</em><strong>_</strong><em>user</em><strong>_</strong><em>dir</em>/filters” directory is searched,  where  <em>pan-</em>
+         <em>doc</em><strong>_</strong><em>user</em><strong>_</strong><em>dir</em> is the default user data directory as reported by <strong>pandoc</strong> <strong>--version</strong>.
+
+       • Unless <strong>--no-sys-path</strong> was specified, each element of Python's <strong>sys.path</strong> is searched in order.
+
+<strong>EXAMPLE</strong>
+              cat some_markdown.md | \
+                  pandoc -f markdown -t html --filter panfl &gt;some_html.html
+
+<strong>SEE</strong> <strong>ALSO</strong>
+       pandoc(1), panfl(1)
+
+       <strong>Panflute</strong> <strong>library</strong> <strong>documentation</strong>
+              /usr/share/doc/python3-panflute/html/index.html
+
+                                              03 Oct 2019                                   panflute(1)
+</pre>
+</body></html>

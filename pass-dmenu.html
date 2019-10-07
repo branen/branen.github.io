@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="dcterms.date" content="2019-09-21" />
+  <title>pass-dmenu - an ergonomic UI for Password Store</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(title);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="pass-dmenu.css" />
+</head>
+<body>
+<header>
+<h1 class="title">pass-dmenu - an ergonomic UI for Password Store</h1>
+<p class="date">21 Sep 2019</p>
+</header>
+<h1 id="synopsis">Synopsis</h1>
+<p><code>pass-dmenu</code> {<code>clip</code>, <code>type</code>} [<em>dmenu args</em>]…</p>
+<h1 id="description">Description</h1>
+<p><code>pass-dmenu</code> is a <a href="https://tools.suckless.org/dmenu/"><code>dmenu</code></a>-based UI for <a href="https://www.passwordstore.org/">Password Store</a> that uses predictive ordering and integrations with <a href="https://www.semicomplete.com/projects/xdotool/"><code>xdotool</code></a> and <a href="https://github.com/tadfisher/pass-otp"><code>pass-otp</code></a> to reduce considerably the number of keystrokes required to use a password.</p>
+<p>It is especially effective where sets of related passwords tend to be addressed in sequence.</p>
+<h2 id="actions">Actions</h2>
+<p>The first argument to <code>pass-dmenu</code> must be the action to be performed with the selected password:</p>
+<dl>
+<dt><code>clip</code></dt>
+<dd><p>Copy the selected password to the clipboard (using <a href="https://github.com/astrand/xclip"><code>xclip</code></a>).</p>
+</dd>
+<dt><code>type</code></dt>
+<dd><p>“Type” the selected password (using <a href="https://www.semicomplete.com/projects/xdotool/"><code>xdotool</code></a>).</p>
+</dd>
+</dl>
+<p>(<code>pass-dmenu clip</code> clears the clipboard after one paste or <code>$PASSWORD_STORE_CLIP_TIME</code> seconds.)</p>
+<h2 id="additional-arguments">Additional arguments</h2>
+<p>Any additional arguments to <code>pass-dmenu</code> are passed directly to <a href="https://tools.suckless.org/dmenu/"><code>dmenu</code></a>.</p>
+<h2 id="one-time-password-support">One-time password support</h2>
+<p>If a password value begins with <code>otpauth://</code>, <a href="https://github.com/tadfisher/pass-otp"><code>pass-otp</code></a> will be used to generate a one-time password, which will then be <em>clipped</em> or <em>typed</em> as usual.</p>
+<h1 id="predictive-ordering">Predictive ordering</h1>
+<p><a href="https://tools.suckless.org/dmenu/"><code>dmenu</code></a> provides two mechanisms by which to select an element from a list of options: filtration (based on substring match) and sequential navigation. Because <a href="https://tools.suckless.org/dmenu/"><code>dmenu</code></a>’s sequential navigation always starts with the first filtered element, elements near the head of the list tend to require fewer keystrokes to select than elements elsewhere in the list. Thus, if we promote to the head of the list the elements that are likeliest to be selected in a given invocation, we can reduce the number of keystrokes required to select them.</p>
+<p><code>pass-dmenu</code> begins with a list of password names in lexicographic order and performs this promotion using:</p>
+<ul>
+<li>a set of manually defined, regex-based rules and</li>
+<li>the password name selected in the most recent [prior] <code>pass-dmenu</code> invocation.</li>
+</ul>
+<h2 id="rulesets">Rulesets</h2>
+<p>Rules for a password store are defined in the file <code>.pass-dmenu.rules</code> at the root of the password store. This ruleset is a JSON-encoded list of rules, where each rule is a single-element dictionary mapping a regular expression to a list of regular expression templates. (Specifically, these are <a href="https://docs.python.org/3/library/re.html#regular-expression-syntax">Python regular expressions</a> and <a href="https://docs.python.org/3/library/string.html#formatstrings">Python format string templates</a>.)</p>
+<p>For convenience, single-element template lists can be abbreviated by their element.</p>
+<p>In short, the schema is:</p>
+<pre><code>RuleSet: List[
+    SingleElementDict[
+        MatcherRegex,
+        Union[PickerRegexTemplate, List[PickerRegexTemplate]]
+    ]
+]</code></pre>
+<p>Roughly, each rule maps from “what was selected most recently” to “what is likeliest to be selected next.”</p>
+<h2 id="evaluation">Evaluation</h2>
+<p>Each <em>MatcherRegex</em> is evaluated against the most-recently-used password name (or the empty string, if there is no most-recently-used password). When there’s a hit, the resulting <em>MatchGroup</em> is interpolated into each <em>PickerRegexTemplate</em>, resulting in a <em>PickerRegex</em>. (Regex control characters appearing in the <em>MatchGroup</em> are escaped as necessary.)</p>
+<pre><code>Match: fn[MostRecentlyUsedPasswordName, MatcherRegex] -&gt; Optional[MatchGroup]
+Interpolate: fn[MatchGroup, PickerRegexTemplate] -&gt; PickerRegex</code></pre>
+<p>This process is applied to each rule in the ruleset, ultimately resulting in a list of <em>PickerRegex</em> objects, ordered as they appear in the original JSON document:</p>
+<pre><code>Evaluate: fn[RuleSet, MostRecentlyUsedPasswordName] -&gt; List[PickerRegex]</code></pre>
+<h2 id="promotion">Promotion</h2>
+<p>Once the evaluation process is complete, <code>pass-dmenu</code> initializes two lists:</p>
+<ul>
+<li>a <em>residual</em> list is initialized with all the names in the password store, sorted lexicographically, and</li>
+<li>a <em>promoted</em> list is initialized with no elements.</li>
+</ul>
+<p>Starting with the first <em>PickerRegex</em>, <code>pass-dmenu</code> considers each element in the residual list, from head to tail. Each time it encounters an element that matches the current <em>PickerRegex</em>, that element is moved from its position in the residual list to the tail of the promoted list. This process repeats for each <em>PickerRegex</em>. Once it is complete, any elements that remain in the residual list are moved in order to the promoted list, and the promoted list is displayed to the user.</p>
+<pre><code>Promote: fn[List[PickerRegex], List[PasswordNames]] -&gt; List[PasswordNames]</code></pre>
+<h2 id="example">Example</h2>
+<p>Consider the following ruleset:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode json"><code class="sourceCode json"><a class="sourceLine" id="cb5-1" title="1"><span class="ot">[</span></a>
+<a class="sourceLine" id="cb5-2" title="2">    <span class="fu">{</span></a>
+<a class="sourceLine" id="cb5-3" title="3">        <span class="dt">&quot;^(?P&lt;base&gt;.*)/(user|login)$&quot;</span><span class="fu">:</span> <span class="st">&quot;^{base}/pass$&quot;</span></a>
+<a class="sourceLine" id="cb5-4" title="4">    <span class="fu">}</span><span class="ot">,</span></a>
+<a class="sourceLine" id="cb5-5" title="5">    <span class="fu">{</span></a>
+<a class="sourceLine" id="cb5-6" title="6">        <span class="dt">&quot;^(.*)/pass$&quot;</span><span class="fu">:</span> <span class="ot">[</span></a>
+<a class="sourceLine" id="cb5-7" title="7">            <span class="st">&quot;^{1}/(otp|OTP)$&quot;</span><span class="ot">,</span></a>
+<a class="sourceLine" id="cb5-8" title="8">            <span class="st">&quot;^{1}/(pin|PIN)$&quot;</span><span class="ot">,</span></a>
+<a class="sourceLine" id="cb5-9" title="9">        <span class="ot">]</span></a>
+<a class="sourceLine" id="cb5-10" title="10">    <span class="fu">}</span><span class="ot">,</span></a>
+<a class="sourceLine" id="cb5-11" title="11">    <span class="fu">{</span></a>
+<a class="sourceLine" id="cb5-12" title="12">        <span class="dt">&quot;&quot;</span><span class="fu">:</span> <span class="ot">[</span></a>
+<a class="sourceLine" id="cb5-13" title="13">            <span class="st">&quot;/user$&quot;</span><span class="ot">,</span></a>
+<a class="sourceLine" id="cb5-14" title="14">            <span class="st">&quot;/login$&quot;</span><span class="ot">,</span></a>
+<a class="sourceLine" id="cb5-15" title="15">        <span class="ot">]</span></a>
+<a class="sourceLine" id="cb5-16" title="16">    <span class="fu">}</span></a>
+<a class="sourceLine" id="cb5-17" title="17"><span class="ot">]</span></a></code></pre></div>
+<p>…and the following lexicographically-ordered list of password names:</p>
+<pre><code>aaaaaaaaaaaaaaaaaa
+graceful.host/pass
+graceful.host/user
+grapefruit.home/email
+grapefruit.home/pass
+grapefruit.home/pin
+grapefruit.home/user
+horse.lan/login
+horse.lan/otp
+horse.lan/user
+pizza.corp/user</code></pre>
+<h3 id="first-invocation">First invocation</h3>
+<p>If <code>pass-dmenu</code> is invoked without a most-recently-used password name (i.e. upon first invocation or after cancelling an invocation), the ruleset will evaluate to these <em>PickerRegex</em> expressions:</p>
+<pre><code>/user$
+/login$</code></pre>
+<p>These expressions first promote everything ending in “/user”, and then promote everything ending in “/login”, resulting in the following final order:</p>
+<pre><code>graceful.host/user
+grapefruit.home/user
+horse.lan/user
+pizza.corp/user
+horse.lan/login
+aaaaaaaaaaaaaaaaaa
+graceful.host/pass
+grapefruit.home/email
+grapefruit.home/pass
+grapefruit.home/pin
+horse.lan/otp</code></pre>
+<p>Where the tersest way to select <code>grapefruit.home/user</code> would have been <code>pe&lt;Right&gt;&lt;Right&gt;&lt;Right&gt;&lt;Enter&gt;</code> in the original order, it is now <code>p&lt;Enter&gt;</code>.</p>
+<h3 id="second-invocation">Second invocation</h3>
+<p>If the user selects <code>grapefruit.home/user</code> and invokes <code>pass-dmenu</code> again, the ruleset will evaluate to these <em>PickerRegex</em> expressions:</p>
+<pre><code>^grapefruit\\.home/pass$
+/user$
+/login$</code></pre>
+<p>This results in the following final order:</p>
+<pre><code>grapefruit.home/pass
+graceful.host/user
+grapefruit.home/user
+horse.lan/user
+pizza.corp/user
+horse.lan/login
+aaaaaaaaaaaaaaaaaa
+graceful.host/pass
+grapefruit.home/email
+grapefruit.home/pin
+horse.lan/otp</code></pre>
+<p>Where the tersest way to select <code>grapefruit.home/pass</code> would have been <code>pe&lt;Right&gt;&lt;Enter&gt;</code>, it is now <code>&lt;Enter&gt;</code>.</p>
+<h3 id="third-invocation">Third invocation</h3>
+<p>If the user selects <code>grapefruit.home/pass</code> and invokes <code>pass-dmenu</code> again, the ruleset will evaluate to these <em>PickerRegex</em> expressions:</p>
+<pre><code>^grapefruit\\.home/(otp|OTP)$
+^grapefruit\\.home/(pin|PIN)$
+/user$
+/login$</code></pre>
+<p>This results in the following final order:</p>
+<pre><code>grapefruit.home/pin
+graceful.host/user
+grapefruit.home/user
+horse.lan/user
+pizza.corp/user
+horse.lan/login
+aaaaaaaaaaaaaaaaaa
+graceful.host/pass
+grapefruit.home/email
+grapefruit.home/pass
+horse.lan/otp</code></pre>
+<p>Where the tersest way to select <code>grapefruit.home/pass</code> would have been <code>pe&lt;Right&gt;&lt;Right&gt;&lt;Enter&gt;</code>, it is now <code>&lt;Enter&gt;</code>.</p>
+<h3 id="fourth-invocation">Fourth invocation</h3>
+<p>If the user selects <code>grapefruit.home/pass</code> and invokes <code>pass-dmenu</code> again, the ruleset will evaluate to these <em>PickerRegex</em> expressions:</p>
+<pre><code>/user$
+/login$</code></pre>
+<p>And we’re now back to the same order that we saw on the initial invocation.</p>
+<h1 id="environment">Environment</h1>
+<dl>
+<dt><code>PASSWORD_STORE_DIR</code></dt>
+<dd><p>The path of the password store directory. Defaults to <code>~/.password-store</code>.</p>
+</dd>
+<dt><code>PASSWORD_STORE_UMASK</code></dt>
+<dd><p>The umask used by <code>pass-dmenu</code> when updating <code>.pass-dmenu.rules</code>. Defaults to 077.</p>
+</dd>
+<dt><code>PASSWORD_STORE_DMENU</code></dt>
+<dd><p>The path to <a href="https://tools.suckless.org/dmenu/"><code>dmenu</code></a> (or equivalent). Defaults to <code>dmenu</code>.</p>
+</dd>
+<dt><code>PASSWORD_STORE_X_SELECTION</code></dt>
+<dd><p>The X selection to use for the <code>clip</code> action. Defaults to clipboard. (See xclip(1) for more information.)</p>
+</dd>
+<dt><code>PASSWORD_STORE_CLIP_TIME</code></dt>
+<dd><p>The number of seconds the <code>clip</code> action should allot for the password to be pasted by the user before it gives up and clears the clipboard. Defaults to 45.</p>
+</dd>
+</dl>
+<h1 id="files">Files</h1>
+<dl>
+<dt><code>$PASSWORD_STORE_DIR/.pass-dmenu.rules</code></dt>
+<dd><p>The JSON ruleset for <code>$PASSWORD_STORE_DIR</code>.</p>
+</dd>
+<dt><code>$PASSWORD_STORE_DIR/.pass-dmenu.cache</code></dt>
+<dd><p>The password most recently selected by <code>pass-dmenu</code> for <code>$PASSWORD_STORE_DIR</code>. (This file will be zero-length if the most recent <code>pass-dmenu</code> invocation was cancelled without selecting a password.)</p>
+</dd>
+</dl>
+<h1 id="security-considerations">Security considerations</h1>
+<p>This section describes the security delta between using <code>pass-dmenu</code> and using <a href="https://www.passwordstore.org/">Password Store</a> on its own; it is not meant to be a comprehensive treatment.</p>
+<h2 id="cache-file">Cache file</h2>
+<p>Each time a password is selected (or a password selection is aborted), <code>$PASSWORD_STORE_DIR/.pass-dmenu.cache</code> will be updated atomically using <code>rename(2)</code> with the name of the most-recently-used password (or emptiness). An adversary with read access to <code>$PASSWORD_STORE_DIR</code> could learn when you last used <code>pass-dmenu</code> by observing the change time of <code>.pass-dmenu.cache</code>, and they could learn which password you chose (or that you didn’t choose a password) during that invocation by observing the contents of said file. All of this information (and more) could also be learned by observing the access times of files in <code>$PASSWORD_STORE_DIR</code>.</p>
+<p>By default, <a href="https://www.passwordstore.org/">Password Store</a> and <code>pass-dmenu</code> use a umask of 077, which prevents users other than the owner of <code>$PASSWORD_STORE_DIR</code> from observing both <code>.pass-dmenu.cache</code> and filesystem timestamps.</p>
+<p>For additional confidentiality, <code>pass-dmenu</code> may be used with disk or file encryption schemes.</p>
+<h2 id="trusted-base">Trusted base</h2>
+<p><code>pass-dmenu</code> is written in Python 3, using only built-ins and the standard library. Thus, when you trust <code>pass-dmenu</code> with your cleartext passwords, you extend the same trust to the Python 3 interpreter, to portions of the Python 3 standard library, and to their dependencies.</p>
+<h2 id="swap">Swap</h2>
+<p>In Python 3, as with most other languages in which memory management is implicit, there’s no great way to keep process state from being swapped to disk during periods when memory is scarce. As a result, cleartext passwords being handled by <code>pass-dmenu</code> could potentially wind up in a swap partition. <em>This issue is not unique to this software</em>—it also affects <a href="https://www.passwordstore.org/">Password Store</a> (which is written in bash), <a href="https://github.com/astrand/xclip"><code>xclip</code></a> and <a href="https://www.semicomplete.com/projects/xdotool/"><code>xdotool</code></a> (which are written in C), and many applications that consume passwords (e.g. web browsers).</p>
+<p>The issue may be mitigated by disabling swap or by using an encrypted swap partition.</p>
+<h2 id="clipboard">Clipboard</h2>
+<p><code>pass-dmenu clip</code> allows a password to be pasted no more than once before the clipboard is cleared. This is in contrast to <a href="https://www.passwordstore.org/">Password Store</a>, which does not clear the clipboard until <code>$PASSWORD_STORE_CLIP_TIME</code> seconds have elapsed.</p>
+<p><a href="https://www.passwordstore.org/">Password Store</a> attempts to clear password history from <code>klipper</code>, a clipboard manager. <code>pass-dmenu clip</code> does not attempt to integrate with any clipboard managers.</p>
+<p><code>pass-dmenu type</code> does not interact with the clipboard.</p>
+<h1 id="see-also">See also</h1>
+<p>pass(1), pass-otp(1), dmenu(1), xdotool(1), xclip(1)</p>
+<h1 id="copyright">Copyright</h1>
+<p>Copyright 2019 Branen Salmon. License GPLv3+: <a href="https://gnu.org/licenses/gpl.html">GNU GPL version 3 or later</a>. This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.</p>
+</body>
+</html>

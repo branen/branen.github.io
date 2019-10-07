@@ -1,0 +1,94 @@
+<html><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>panfl(1)</title>
+</head><body>
+<pre class="man">panfl(1)                                                                                       panfl(1)
+
+<strong>NAME</strong>
+       panfl - Pandoctools-compatible runner for Panflute filters
+
+<strong>SYNOPSIS</strong>
+       <strong>panfl</strong> <strong>-t</strong> <em>writer</em> [<strong>-d</strong> <em>directory</em>]... [<strong>--data-dir</strong>] [<strong>--no-sys-path</strong>] [<em>filter</em>]...
+
+       <strong>panfl</strong> [<em>writer</em>]
+
+       <strong>panfl</strong> <strong>--help</strong>
+
+<strong>DESCRIPTION</strong>
+       <strong>panfl</strong> runs filters written for Panflute, a Pythonic API for transforming documents with Pandoc.
+
+       When called with the <strong>-t</strong> argument, it can be used in Pandoctools shell scripts.
+
+       When called with one argument, it can be used with <strong>pandoc</strong> <strong>--filter</strong>.  In this case, pandoc passes
+       the sole argument, and search paths and filter names are read from the document metadata.
+
+<strong>OPTIONS</strong>
+       <strong>-w,</strong> <strong>-t,</strong> <strong>--write,</strong> <strong>--to</strong> <em>writer</em>
+              Pandoc writer option (passed to filters).
+
+       <strong>[-d</strong> <em>directory</em><strong>]...</strong>
+              Search for filters in specified directories.
+
+       <strong>[--data-dir]</strong>
+              Search for filters in “<em>pandoc</em><strong>_</strong><em>user</em><strong>_</strong><em>dir</em>/filters”, where <em>pandoc</em><strong>_</strong><em>user</em><strong>_</strong><em>dir</em> is the default us-
+              er data directory as reported by <strong>pandoc</strong> <strong>--version</strong>.
+
+       <strong>[--no-sys-path]</strong>
+              Don't search for filters in Python's <strong>sys.path</strong>.
+
+       <strong>[</strong><em>filter</em><strong>]...</strong>
+              The  filters  to  find  and run.  They may be relative or absolute paths or Python module
+              names.  If this option is omitted, filters will be taken from the <strong>panflute-filters</strong> key of
+              the document's metadata.
+
+<strong>SEARCH</strong> <strong>PATH</strong>
+       The search for filters proceeds as follows:
+
+       • If one or more search paths were specified with <strong>-d</strong>, these are searched in order.
+
+       • If  no  search paths were specified with <strong>-d</strong> and the document metadata contains a <strong>panflute-path</strong>
+         key, the corresponding value must either be a list or a string.
+
+         • In the former case, each element of the list is tilde– and environment-variable–expanded and
+           searched in order.
+
+         • In  the  latter  case, the string is expanded and searched as above, as though it the single
+           element of a list.
+
+         In addition to directory paths, the <strong>panflute-path</strong> list may also contain the values  <strong>--data-dir</strong>
+         or <strong>--no-sys-path</strong>; these change later search behavior.
+
+       • If <strong>--data-dir</strong> was specified, the corresponding directory is searched.  (See OPTIONS, above.)
+
+       • Unless  <strong>--no-sys-path</strong>  was  specified, each element of Python's <strong>sys.path</strong> is searched in order,
+         except for '' and `.', which are never searched.
+
+       Here are some helpful tips:
+
+       • If <strong>-d</strong> is specified, <strong>panflute-path</strong> is completely ignored.
+
+       • If you want to load filters from document-level directories (instead of  from  user-  or  sys-
+         tem-level directories) using document metadata, use relative paths with <strong>-d</strong> or <strong>panflute-path</strong> or
+         see <strong>panflute(1)</strong>.
+
+       • If you want to write filters that don't rely on an external runner,  see  the  <strong>run_filter</strong>  and
+         <strong>run_filters</strong> methods in the <strong>panflute</strong> Python module.
+
+<strong>EXAMPLES</strong>
+              cat some_markdown.md | \
+                  pandoc -f markdown -t json | \
+                  panfl -t html some_filter | \
+                  pandoc -f json -t html &gt;some_html.html
+
+              cat some_markdown.md | \
+                  pandoc -f markdown -t html --filter panfl &gt;some_html.html
+
+<strong>SEE</strong> <strong>ALSO</strong>
+       pandoc(1), panflute(1)
+
+       <strong>Panflute</strong> <strong>library</strong> <strong>documentation</strong>
+              /usr/share/doc/python3-panflute/html/index.html
+
+                                              03 Oct 2019                                      panfl(1)
+</pre>
+</body></html>

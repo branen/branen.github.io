@@ -1,0 +1,85 @@
+/*
+ * The HTML manual looks much better with the following fonts:
+ *
+ * Font name          | CTAN package | Debian package
+ * -------------------+--------------+--------------------------
+ * Bitstream Charter  | charter      | texlive-fonts-recommended
+ * Latin Modern Mono  | lm           | fonts-lmodern
+ */
+
+/*
+ * This is a copy of the Charter Type-1 fonts which Bitstream contributed
+ * to the X consortium, renamed for use with TeX, and then converted to WOFF2
+ * for this portfolio site.
+ *
+ *   (c) Copyright 1989-1992, Bitstream Inc., Cambridge, MA.
+ *
+ *   You are hereby granted permission under all Bitstream propriety rights
+ *   to use, copy, modify, sublicense, sell, and redistribute the 4
+ *   Bitstream Charter (r) Type 1 outline fonts for any purpose and without
+ *   restriction; provided, that this notice is left intact on all copies
+ *   of such fonts and that Bitstream's trademark is acknowledged as shown
+ *   below on all unmodified copies of the 4 Charter Type 1 fonts.
+ *
+ *     BITSTREAM CHARTER is a registered trademark of Bitstream Inc.
+ *
+ * TeX metrics, virtual fonts and LaTeX font definition files can be found
+ * in the archive CTAN:fonts/metrics/freenfss.zip.
+ *
+ * -- finis
+ */
+@font-face {
+    font-family: "Bitstream Charter";
+    src: url("CharterBT-Roman.woff") format("woff");
+}
+
+/*
+ * See lmodern_2.004.5.orig.tar.gz, available from the same place you got
+ * this CSS file, for license and source material.
+ */
+@font-face {
+    font-family: "Latin Modern Mono";
+    src: url("LMMono8-Regular.woff") format("woff");
+    src: url("LMMono9-Regular.woff") format("woff");
+    src: url("LMMono10-Regular.woff") format("woff");
+    src: url("LMMono12-Regular.woff") format("woff");
+}
+
+
+body {
+    background-color: #f7f7f7;
+    font-family: "Bitstream Charter", serif;
+    hyphens: auto;
+    line-height: 1.3;
+    text-align: justify;
+    margin-bottom: 10%;
+    margin-left: 10%;
+    margin-right: 10%;
+    max-width: 600pt;
+}
+
+header {
+    text-align: center;
+    line-height: 1;
+}
+
+h2 {
+    font-style: italic;
+}
+
+a:active, a:hover, a:link, a:visited {
+    display: inline-block;
+    color: inherit;
+    background-color: #e0e0ff;
+    text-decoration: none;
+}
+
+code {
+    font-family: "Latin Modern Mono", monospace;
+}
+
+pre {
+    background-color: #e0e0e0;
+    display: block;
+    padding: 12pt 12pt 12pt 12pt;
+}
