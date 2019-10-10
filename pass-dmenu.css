@@ -39,10 +39,10 @@
  */
 @font-face {
     font-family: "Latin Modern Mono";
-    src: url("LMMono8-Regular.woff") format("woff");
-    src: url("LMMono9-Regular.woff") format("woff");
-    src: url("LMMono10-Regular.woff") format("woff");
-    src: url("LMMono12-Regular.woff") format("woff");
+    src: url("LMMono8-Regular.woff") format("woff"),
+         url("LMMono9-Regular.woff") format("woff"),
+         url("LMMono10-Regular.woff") format("woff"),
+         url("LMMono12-Regular.woff") format("woff");
 }
 
 
