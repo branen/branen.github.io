@@ -4,6 +4,9 @@
 </head><body>
 <pre class="man">pass-dmenu(1)                                                                             pass-dmenu(1)
 
+<strong>NAME</strong>
+       pass-dmenu - an ergonomic UI for Password Store
+
 <strong>SYNOPSIS</strong>
        <strong>pass-dmenu</strong> {clip, type} [<em>dmenu</em> <em>args</em>]...
 
@@ -32,7 +35,7 @@
 
 <strong>PREDICTIVE</strong> <strong>ORDERING</strong>
        <strong>dmenu</strong> provides two mechanisms by which to select an element from a list of  options:  filtration
-       (based on substring match) and sequential navigation.  Because <strong>dmenu</strong>'s sequential navigation al-
+       (based on substring match) and sequential navigation.  Because <strong>dmenu</strong>’s sequential navigation al-
        ways starts with the first filtered element, elements near the head of the list tend to  require
        fewer keystrokes to select than elements elsewhere in the list.  Thus, if we promote to the head
        of the list the elements that are likeliest to be selected in a given invocation, we can  reduce
@@ -67,7 +70,7 @@
 
    <strong>Evaluation</strong>
        Each <em>MatcherRegex</em> is evaluated against  the  most-recently-used  password  name  (or  the  empty
-       string,  if  there is no most-recently-used password).  When there's a hit, the resulting <em>Match-</em>
+       string,  if  there is no most-recently-used password).  When there’s a hit, the resulting <em>Match-</em>
        <em>Group</em> is interpolated into each <em>PickerRegexTemplate</em>, resulting in a <em>PickerRegex</em>.  (Regex control
        characters appearing in the <em>MatchGroup</em> are escaped as necessary.)
 
@@ -214,7 +217,7 @@
               /user$
               /login$
 
-       And we're now back to the same order that we saw on the initial invocation.
+       And we’re now back to the same order that we saw on the initial invocation.
 
 <strong>ENVIRONMENT</strong>
        <strong>PASSWORD_STORE_DIR</strong>
@@ -252,7 +255,7 @@
        WORD_STORE_DIR/.pass-dmenu.cache will be updated atomically using rename(2) with the name of the
        most-recently-used   password   (or  emptiness).   An  adversary  with  read  access  to  $PASS-
        WORD_STORE_DIR could learn when you last  used  <strong>pass-dmenu</strong>  by  observing  the  change  time  of
-       .pass-dmenu.cache,  and  they  could learn which password you chose (or that you didn't choose a
+       .pass-dmenu.cache,  and  they  could learn which password you chose (or that you didn’t choose a
        password) during that invocation by observing the contents of said file.  All of  this  informa-
        tion  (and  more)  could  also  be  learned  by  observing  the  access times of files in $PASS-
        WORD_STORE_DIR.
@@ -269,7 +272,7 @@
        interpreter, to portions of the Python 3 standard library, and to their dependencies.
 
    <strong>Swap</strong>
-       In Python 3, as with most other languages in which memory management  is  implicit,  there's  no
+       In Python 3, as with most other languages in which memory management  is  implicit,  there’s  no
        great way to keep process state from being swapped to disk during periods when memory is scarce.
        As a result, cleartext passwords being handled by <strong>pass-dmenu</strong> could potentially wind up in a swap
        partition.   <em>This</em>  <em>issue</em> <em>is</em> <em>not</em> <em>unique</em> <em>to</em> <em>this</em> <em>software</em>—it also affects <strong>Password</strong> <strong>Store</strong> (which is
